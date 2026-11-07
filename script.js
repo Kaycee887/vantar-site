@@ -152,6 +152,7 @@
   /* ---------- Contact form ---------- */
   const form = document.getElementById("contactForm");
   const success = document.getElementById("formSuccess");
+  const formError = document.getElementById("formError");
 
   const validators = {
     name: (v) => (v.trim().length < 2 ? "Please tell us your name." : ""),
@@ -176,6 +177,8 @@
   };
 
   if (form) {
+    let sending = false;
+
     form.querySelectorAll("input, textarea").forEach((input) => {
       input.addEventListener("blur", () => validateField(input));
       input.addEventListener("input", () => {
@@ -184,7 +187,7 @@
       });
     });
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fields = Array.from(form.querySelectorAll("input[required], textarea[required]"));
       const allValid = fields.map(validateField).every(Boolean);
@@ -196,17 +199,42 @@
       }
 
       const btn = form.querySelector('button[type="submit"]');
+      const originalBtn = btn.innerHTML;
+      if (sending) return;
+      sending = true;
+
       btn.disabled = true;
       btn.textContent = "Sending…";
+      if (formError) formError.hidden = true;
 
-      // Simulated submission — wire this to your endpoint.
-      setTimeout(() => {
+      try {
+        const body = new URLSearchParams();
+        new FormData(form).forEach((value, key) => body.append(key, value));
+        const response = await fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+
+        if (!response.ok) throw new Error("Request failed with status " + response.status);
+
         success.hidden = false;
         form.reset();
-        btn.disabled = false;
-        btn.innerHTML = 'Send enquiry <span class="arrow">→</span>';
         success.scrollIntoView({ block: "nearest", behavior: prefersReduced ? "auto" : "smooth" });
-      }, 750);
+      } catch (err) {
+        if (formError) {
+          formError.textContent =
+            "We couldn't send your message. Please try again, or email hello@vantar.studio directly.";
+          formError.hidden = false;
+        }
+      } finally {
+        sending = false;
+        btn.disabled = false;
+        btn.innerHTML = originalBtn;
+        if (formError && !formError.hidden) {
+          formError.scrollIntoView({ block: "nearest", behavior: prefersReduced ? "auto" : "smooth" });
+        }
+      }
     });
   }
 

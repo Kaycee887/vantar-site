@@ -853,6 +853,24 @@ h3 { font-size: 1.2rem; letter-spacing: -0.02em; }
   min-height: 0;
 }
 
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #ff8d8d;
+  text-align: center;
+}
+.form-error[hidden] { display: none; }
+
 .form-note {
   font-size: 0.76rem;
   color: var(--muted-dim);
